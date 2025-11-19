@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archetype Ascension | Communication Style RPG</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #1a1a1a;
+            color: #e5e5e5;
+        }
+        h1, h2, h3, .fantasy-font {
+            font-family: 'Cinzel', serif;
+        }
+        .card-bg {
+            background-image: linear-gradient(to bottom right, #2d2d2d, #1a1a1a);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+        }
+        .input-ring {
+            transition: all 0.3s ease;
+        }
+        .input-ring:focus-within {
+            box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.3);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280; 
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[url('https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2070&auto=format&fit=crop')] bg-cover bg-center bg-no-repeat bg-fixed">
+    <div class="min-h-screen bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div id="root" class="w-full max-w-5xl"></div>
+    </div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- DATA CONFIGURATION ---
+        
+        // Archetype Data from JSON
+        const archetypes = {
+            pure: {
+                "Analytical": {
+                    name: "Sage of Stars",
+                    role: "Keeper of cosmic maps, decipherer of hidden patterns",
+                    strengths: ["Precision", "Wisdom", "Patience", "Pattern recognition"],
+                    shadow: ["Aloof", "Nit-picking", "Slow to act"],
+                    symbol: "Crystal Astrolabe",
+                    motif: "Seeks truth and perfection, fears chaos and error",
+                    color: "text-blue-400",
+                    bgColor: "bg-blue-900/30",
+                    borderColor: "border-blue-500",
+                    icon: (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                    )
+                },
+                "Driver": {
+                    name: "Warlord of Flame",
+                    role: "Commander of armies, wielder of decisive fire",
+                    strengths: ["Bold", "Competitive", "Forceful", "Thrives in challenge"],
+                    shadow: ["Abrasive", "Impatient", "Overbearing"],
+                    symbol: "Blazing Sword",
+                    motif: "Seeks conquest and control, fears loss of power",
+                    color: "text-red-500",
+                    bgColor: "bg-red-900/30",
+                    borderColor: "border-red-600",
+                    icon: (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/><line x1="13" y1="19" x2="19" y2="13"/><line x1="16" y1="16" x2="20" y2="20"/><line x1="19" y1="21" x2="21" y2="19"/></svg>
+                    )
+                },
+                "Feeler": {
+                    name: "Hearthkeeper",
+                    role: "Guardian of sacred fire, healer, peacemaker",
+                    strengths: ["Loyal", "Patient", "Empathetic", "Dependable"],
+                    shadow: ["Oversensitive", "Possessive", "Resistant to change"],
+                    symbol: "Glowing Lantern",
+                    motif: "Seeks harmony and belonging, fears confrontation and betrayal",
+                    color: "text-green-400",
+                    bgColor: "bg-green-900/30",
+                    borderColor: "border-green-500",
+                    icon: (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.28 3.6-2.36 4.57-4.25A8.6 8.6 0 0 0 19 8a6 6 0 0 0-1.64-7C16.4 1.65 15.24 3 15 5a32.8 32.8 0 0 0-2.79 6.25c-.48 1.5-.88 3.05-1.21 4.53"/><path d="M12 14c-4-4.5-7-3-7-3s-1 2.5 2 5.5a6.6 6.6 0 0 0 7 2.5"/><path d="M16 12c.5 2 3 4 3 4"/></svg>
+                    )
+                },
+                "Influencing": {
+                    name: "Trickster Bard",
+                    role: "Charismatic wanderer, teller of tales, spark of joy",
+                    strengths: ["Enthusiastic", "Playful", "Adaptable", "Wins hearts"],
+                    shadow: ["Disorganized", "Superficial", "Too trusting"],
+                    symbol: "Golden Mask",
+                    motif: "Seeks prestige and approval, fears obscurity and routine",
+                    color: "text-yellow-400",
+                    bgColor: "bg-yellow-900/30",
+                    borderColor: "border-yellow-500",
+                    icon: (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 10c0-4 4-8 10-8s10 4 10 8-4 8-10 8-10-4-10-8Z"/><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 1.33.33 2.5 1 3.5"/><path d="M19 13.5A8 8 0 0 0 12 2"/></svg>
+                    )
+                }
+            },
+            hybrids: [
+                { styles: ["Analytical", "Driver"], name: "Strategist General", role: "Charts stars to plan campaigns, balancing detail with decisive action", symbol: "War map etched in starlight", color: "text-purple-400", bgColor: "bg-purple-900/30", borderColor: "border-purple-500" },
+                { styles: ["Feeler", "Influencing"], name: "Joyweaver", role: "Brings warmth and play, weaving bonds through laughter and trust", symbol: "Harp strung with threads of firelight", color: "text-lime-400", bgColor: "bg-lime-900/30", borderColor: "border-lime-500" },
+                { styles: ["Analytical", "Feeler"], name: "Lorekeeper", role: "Preserves traditions and nurtures community with knowledge", symbol: "Library grown into a living tree", color: "text-teal-400", bgColor: "bg-teal-900/30", borderColor: "border-teal-500" },
+                { styles: ["Driver", "Influencing"], name: "Storm Herald", role: "Charismatic leader who rallies crowds with fiery speeches and daring feats", symbol: "Thunder-drum that shakes the battlefield", color: "text-orange-500", bgColor: "bg-orange-900/30", borderColor: "border-orange-500" },
+                { styles: ["Analytical", "Influencing"], name: "Visionary Dreamer", role: "Sees patterns and spins them into inspiring stories", symbol: "Prism that refracts starlight into song", color: "text-indigo-400", bgColor: "bg-indigo-900/30", borderColor: "border-indigo-500" },
+                { styles: ["Driver", "Feeler"], name: "Shieldbearer", role: "Fierce protector, decisive yet loyal, fights for kin and cause", symbol: "Blazing shield carved with ancestral runes", color: "text-rose-400", bgColor: "bg-rose-900/30", borderColor: "border-rose-500" }
+            ]
+        };
+
+        // Assessment Questions (Rows)
+        // Based on PDF. B=Analytical, G=Feeler, Y=Influencing, R=Driver
+        const questions = [
+            { id: 1, words: [
+                { text: "Accurate", style: "Analytical" },
+                { text: "Patient", style: "Feeler" },
+                { text: "Gregarious", style: "Influencing" },
+                { text: "Direct", style: "Driver" }
+            ]},
+            { id: 2, words: [
+                { text: "Systematic", style: "Analytical" },
+                { text: "Loyal", style: "Feeler" },
+                { text: "Persuasive", style: "Influencing" },
+                { text: "Daring", style: "Driver" }
+            ]},
+            { id: 3, words: [
+                { text: "Aloof", style: "Analytical" },
+                { text: "Passive", style: "Feeler" },
+                { text: "Impulsive", style: "Influencing" },
+                { text: "Stubborn", style: "Driver" }
+            ]},
+            { id: 4, words: [
+                { text: "Mature", style: "Analytical" },
+                { text: "Stable", style: "Feeler" },
+                { text: "Confident", style: "Influencing" },
+                { text: "Self-reliant", style: "Driver" }
+            ]},
+            { id: 5, words: [
+                { text: "Conventional", style: "Analytical" },
+                { text: "Serene", style: "Feeler" },
+                { text: "Self-promoting", style: "Influencing" },
+                { text: "Forceful", style: "Driver" }
+            ]},
+            { id: 6, words: [
+                { text: "Restrained", style: "Analytical" },
+                { text: "Even-tempered", style: "Feeler" },
+                { text: "Charming", style: "Influencing" },
+                { text: "Quick", style: "Driver" }
+            ]},
+            { id: 7, words: [
+                { text: "Practical", style: "Analytical" },
+                { text: "Predictable", style: "Feeler" },
+                { text: "Emotional", style: "Influencing" },
+                { text: "Bold", style: "Driver" }
+            ]},
+            { id: 8, words: [
+                { text: "Evaluative", style: "Analytical" },
+                { text: "Devout", style: "Feeler" },
+                { text: "Passionate", style: "Influencing" },
+                { text: "Risk taker", style: "Driver" }
+            ]}
+        ];
+
+        // --- COMPONENTS ---
+
+        const IntroScreen = ({ onStart }) => (
+            <div className="flex flex-col items-center text-center space-y-8 fade-in">
+                <div className="relative">
+                    <div className="absolute inset-0 bg-yellow-500 blur-3xl opacity-20 animate-pulse"></div>
+                    <h1 className="relative text-6xl md:text-8xl fantasy-font font-bold bg-clip-text text-transparent bg-gradient-to-r from-yellow-200 via-yellow-400 to-yellow-600">
+                        Archetype Ascension
+                    </h1>
+                </div>
+                <p className="text-xl md:text-2xl text-gray-300 max-w-2xl font-light leading-relaxed">
+                    Journey through the realm of communication. Rank the words that describe you best to reveal your inner power and discover your true Role in the Fellowship.
+                </p>
+                <button 
+                    onClick={onStart}
+                    className="group relative px-8 py-4 bg-transparent overflow-hidden rounded-lg"
+                >
+                    <div className="absolute inset-0 w-0 bg-yellow-600 transition-all duration-[250ms] ease-out group-hover:w-full opacity-50"></div>
+                    <div className="relative text-2xl fantasy-font font-bold text-yellow-400 group-hover:text-white border-2 border-yellow-500 px-8 py-3 rounded-lg">
+                        Begin Quest
+                    </div>
+                </button>
+            </div>
+        );
+
+        const ProgressBar = ({ current, total }) => (
+            <div className="w-full bg-gray-800 h-3 rounded-full mb-8 overflow-hidden border border-gray-700">
+                <div 
+                    className="bg-gradient-to-r from-yellow-600 to-yellow-400 h-full transition-all duration-500 ease-out"
+                    style={{ width: `${(current / total) * 100}%` }}
+                ></div>
+            </div>
+        );
+
+        const QuestionCard = ({ question, onAnswer, progress, total }) => {
+            const [rankings, setRankings] = useState({});
+            
+            // Reset local state when question changes
+            useEffect(() => {
+                setRankings({});
+            }, [question]);
+
+            const handleSelect = (wordIndex, value) => {
+                // If this value is already used by another word, clear it from that word
+                const newRankings = { ...rankings };
+                
+                // Find if any other word has this value and remove it
+                Object.keys(newRankings).forEach(key => {
+                    if (newRankings[key] === value) {
+                        delete newRankings[key];
+                    }
+                });
+
+                // Set new value
+                newRankings[wordIndex] = value;
+                setRankings(newRankings);
+            };
+
+            const isComplete = Object.keys(rankings).length === 4;
+
+            const handleSubmit = () => {
+                if (isComplete) {
+                    onAnswer(rankings);
+                }
+            };
+
+            // Available scores to assign
+            const scores = [4, 3, 2, 1];
+
+            return (
+                <div className="w-full max-w-4xl mx-auto fade-in">
+                    <div className="flex justify-between items-end mb-4">
+                        <span className="text-yellow-500 fantasy-font text-xl">Trial {progress + 1} of {total}</span>
+                        <span className="text-gray-500 text-sm">4 = Most Like You, 1 = Least Like You</span>
+                    </div>
+                    <ProgressBar current={progress} total={total} />
+                    
+                    <div className="bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-2xl p-8 shadow-2xl">
+                        <h3 className="text-2xl text-center mb-8 text-gray-300 font-light">
+                            Assign <span className="text-yellow-400 font-bold">4</span> to the word that describes you <span className="italic">most</span>, and <span className="text-gray-500 font-bold">1</span> to the word that describes you <span className="italic">least</span>.
+                        </h3>
+
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                            {question.words.map((word, idx) => (
+                                <div key={idx} className="flex flex-col items-center space-y-4 p-4 bg-gray-800/50 rounded-xl border border-gray-700 hover:border-gray-500 transition-colors">
+                                    <span className="text-lg font-bold text-white text-center h-8 flex items-center justify-center">
+                                        {word.text}
+                                    </span>
+                                    <div className="flex space-x-2">
+                                        {scores.map(score => (
+                                            <button
+                                                key={score}
+                                                onClick={() => handleSelect(idx, score)}
+                                                className={`
+                                                    w-8 h-8 rounded-full font-bold text-sm transition-all duration-200
+                                                    ${rankings[idx] === score 
+                                                        ? 'bg-yellow-500 text-black scale-110 shadow-[0_0_10px_rgba(234,179,8,0.5)]' 
+                                                        : Object.values(rankings).includes(score) 
+                                                            ? 'bg-gray-800 text-gray-600 cursor-not-allowed' 
+                                                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}
+                                                `}
+                                                disabled={Object.values(rankings).includes(score) && rankings[idx] !== score}
+                                            >
+                                                {score}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="flex justify-center">
+                            <button 
+                                onClick={handleSubmit}
+                                disabled={!isComplete}
+                                className={`
+                                    px-12 py-3 rounded-lg text-xl fantasy-font font-bold transition-all duration-300
+                                    ${isComplete 
+                                        ? 'bg-gradient-to-r from-yellow-600 to-yellow-500 text-black hover:scale-105 shadow-lg shadow-yellow-500/20' 
+                                        : 'bg-gray-800 text-gray-500 cursor-not-allowed'}
+                                `}
+                            >
+                                Confirm Destiny
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const ResultCard = ({ scores }) => {
+            // Calculate Logic
+            const sortedStyles = Object.entries(scores).sort(([,a], [,b]) => b - a);
+            const [primaryStyle, primaryScore] = sortedStyles[0];
+            const [secondaryStyle, secondaryScore] = sortedStyles[1];
+            
+            // Hybrid detection (if top 2 are within 4 points of each other)
+            const isHybrid = (primaryScore - secondaryScore) <= 4;
+            
+            let result = null;
+            let isPure = true;
+
+            if (isHybrid) {
+                isPure = false;
+                // Find the specific hybrid
+                const combo = [primaryStyle, secondaryStyle].sort().join(',');
+                const hybridMatch = archetypes.hybrids.find(h => h.styles.sort().join(',') === combo);
+                
+                if (hybridMatch) {
+                    result = {
+                        ...hybridMatch,
+                        isHybrid: true,
+                        // Combine icons/colors from the primary purely for visual fallback if needed
+                        baseColor: archetypes.pure[primaryStyle].color
+                    };
+                } else {
+                    // Fallback to pure if hybrid not found (shouldn't happen with current data)
+                    result = archetypes.pure[primaryStyle];
+                    isPure = true;
+                }
+            } else {
+                result = archetypes.pure[primaryStyle];
+            }
+
+            return (
+                <div className="w-full max-w-4xl mx-auto fade-in py-8">
+                    <div className={`relative overflow-hidden rounded-3xl border-2 ${result.borderColor} bg-gray-900 shadow-2xl`}>
+                        {/* Background Atmosphere */}
+                        <div className={`absolute inset-0 ${result.bgColor} blur-3xl opacity-50`}></div>
+                        
+                        <div className="relative z-10 p-8 md:p-12">
+                            {/* Header */}
+                            <div className="text-center mb-12">
+                                <h2 className="text-lg uppercase tracking-widest text-gray-400 mb-2 fantasy-font">
+                                    {isPure ? "Archetype Revealed" : "Hybrid Soul Manifested"}
+                                </h2>
+                                <h1 className={`text-5xl md:text-7xl font-black fantasy-font ${result.color} drop-shadow-lg mb-4`}>
+                                    {result.name}
+                                </h1>
+                                <div className="flex items-center justify-center space-x-2">
+                                    <span className="h-px w-12 bg-gray-500"></span>
+                                    <p className="text-xl text-gray-300 italic">{result.role}</p>
+                                    <span className="h-px w-12 bg-gray-500"></span>
+                                </div>
+                            </div>
+
+                            {/* Content Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                {/* Left: Visual & Symbol */}
+                                <div className="flex flex-col items-center justify-center space-y-6">
+                                    <div className={`w-48 h-48 rounded-full border-4 ${result.borderColor} flex items-center justify-center bg-black/40 shadow-[0_0_30px_rgba(0,0,0,0.5)] relative group`}>
+                                        <div className={`absolute inset-0 rounded-full ${result.bgColor} opacity-20 animate-pulse`}></div>
+                                        <div className={`transform transition-transform duration-700 group-hover:scale-110 ${result.color}`}>
+                                            {isPure ? result.icon : (
+                                                // For hybrids, we don't have SVGs in the JSON, so use a generic star or mix
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-1">Symbol</h3>
+                                        <p className="text-xl font-bold text-white">{result.symbol}</p>
+                                    </div>
+                                    {isPure && (
+                                        <div className="text-center max-w-xs">
+                                            <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-1">Quest Motif</h3>
+                                            <p className="text-md text-gray-300 italic">"{result.motif}"</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Right: Stats & Details */}
+                                <div className="space-y-8">
+                                    {/* Composition Bar */}
+                                    <div>
+                                        <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-3">Soul Composition</h3>
+                                        <div className="space-y-3">
+                                            {sortedStyles.map(([style, score]) => {
+                                                const config = archetypes.pure[style];
+                                                const percent = (score / 32) * 100; // 8 questions * 4 max points = 32
+                                                return (
+                                                    <div key={style} className="space-y-1">
+                                                        <div className="flex justify-between text-xs uppercase font-bold text-gray-400">
+                                                            <span>{style}</span>
+                                                            <span>{Math.round(percent)}%</span>
+                                                        </div>
+                                                        <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+                                                            <div 
+                                                                className={`h-full ${config.color.replace('text-', 'bg-')}`} 
+                                                                style={{ width: `${percent}%` }}
+                                                            ></div>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Strengths (Pure Only or Generic for Hybrid) */}
+                                    {isPure && (
+                                        <div>
+                                            <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-3">Core Strengths</h3>
+                                            <div className="flex flex-wrap gap-2">
+                                                {result.strengths.map((s, i) => (
+                                                    <span key={i} className={`px-3 py-1 rounded-full bg-gray-800 border ${result.borderColor} text-sm text-gray-300`}>
+                                                        {s}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Hybrid Components (If Hybrid) */}
+                                    {!isPure && (
+                                        <div className="p-4 bg-gray-800/50 rounded-xl border border-gray-700">
+                                            <h3 className="text-sm uppercase tracking-wider text-gray-500 mb-2">A Fusion Of</h3>
+                                            <div className="flex items-center space-x-4">
+                                                <span className={`font-bold ${archetypes.pure[result.styles[0]].color}`}>
+                                                    {archetypes.pure[result.styles[0]].name}
+                                                </span>
+                                                <span className="text-gray-600">+</span>
+                                                <span className={`font-bold ${archetypes.pure[result.styles[1]].color}`}>
+                                                    {archetypes.pure[result.styles[1]].name}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="mt-12 flex justify-center">
+                                <button onClick={() => window.location.reload()} className="text-gray-500 hover:text-white transition-colors underline text-sm uppercase tracking-widest">
+                                    Begin New Journey
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [gameState, setGameState] = useState('intro'); // intro, playing, result
+            const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+            const [scores, setScores] = useState({
+                "Analytical": 0,
+                "Driver": 0,
+                "Feeler": 0,
+                "Influencing": 0
+            });
+
+            const startGame = () => setGameState('playing');
+
+            const handleAnswer = (rankings) => {
+                // Rankings is object { wordIndex: score }
+                const currentQ = questions[currentQuestionIndex];
+                const newScores = { ...scores };
+
+                Object.entries(rankings).forEach(([wordIndex, score]) => {
+                    const style = currentQ.words[wordIndex].style;
+                    newScores[style] += score;
+                });
+
+                setScores(newScores);
+
+                if (currentQuestionIndex < questions.length - 1) {
+                    setCurrentQuestionIndex(prev => prev + 1);
+                } else {
+                    setGameState('result');
+                }
+            };
+
+            return (
+                <div className="w-full">
+                    {gameState === 'intro' && <IntroScreen onStart={startGame} />}
+                    {gameState === 'playing' && (
+                        <QuestionCard 
+                            question={questions[currentQuestionIndex]} 
+                            onAnswer={handleAnswer}
+                            progress={currentQuestionIndex}
+                            total={questions.length}
+                        />
+                    )}
+                    {gameState === 'result' && <ResultCard scores={scores} />}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
